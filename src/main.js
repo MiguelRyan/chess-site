@@ -1,21 +1,34 @@
-import {Chessboard, COLOR, FEN, INPUT_EVENT_TYPE} from "cm-chessboard"
+import {BORDER_TYPE, Chessboard, COLOR, FEN, INPUT_EVENT_TYPE} from "cm-chessboard"
 import {BLACK, Chess, KING, WHITE} from 'chess.js'
 import {PromotionDialog} from "cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
 import {MARKER_TYPE, Markers} from "cm-chessboard/src/extensions/markers/Markers.js";
 
-
+const checkmatePanel = document.getElementById("checkmate")
+const historyTable = document.getElementById("historyTable")
+const board = new Chess();
+const dangerMarker = {class: "marker-circle-danger", slice: "markerCircleDanger"};
 const boardGUI = new Chessboard(document.getElementById("board"), {
     position: FEN.start,
     assetsUrl: "/assets/",
+    style: {
+        borderType: BORDER_TYPE.frame
+    },
     extensions: [{class: PromotionDialog}, {class: Markers}]
 })
-const board = new Chess();
 boardGUI.enableMoveInput(inputHandler)
-const dangerMarker = {class: "marker-circle-danger", slice: "markerCircleDanger"};
-
 
 function inputHandler(event) {
     if (event.type === INPUT_EVENT_TYPE.moveInputStarted){
+        const select = event.square === event.squareFrom;
+
+        if (select) {
+            boardGUI.removeMarkers()
+            const legalMoves = board.moves({  square: event.square  })
+            for (let move of legalMoves) {
+                boardGUI.addMarker(MARKER_TYPE.dot, move.slice(-2));
+            }
+        }
+
         return true;
     }
 
@@ -35,13 +48,16 @@ function inputHandler(event) {
             makeMove(move);
         }
 
+        if (board.isCheckmate()) {
+            checkmatePanel.style.display = "flex";
+        }
+
         return false;
     }
 }
 
 function makeMove(move) {
     try {
-        console.log(move);
         board.move(move);
         boardGUI.removeMarkers()
     } catch (error) {
@@ -53,11 +69,69 @@ function makeMove(move) {
         const color = board.turn() === WHITE ? WHITE : BLACK;
         const pieceObject = {type: KING, color: color};
         const location = board.findPiece(pieceObject);
-        console.log(location[0]);
         boardGUI.addMarker(dangerMarker, location[0]);
     }
-
+    updateHistory();
 }
 
-board.is
+const allButtons = document.body.getElementsByTagName("button");
+for (let button of allButtons) {
+    button.addEventListener('mouseenter', () => {
+        button.style.color = "white";
+    })
+    button.addEventListener('mouseleave', () => {
+        button.style.color = "#c5a076";
+    })
+}
 
+playAgain.addEventListener('click', () => {
+    checkmatePanel.style.display = "none";
+})
+
+startAgain.addEventListener('click', () => {
+    restartGame()
+})
+
+undo.addEventListener('click', () => {
+    board.undo();
+    updateBoard();
+    updateHistory();
+})
+
+swapSides.addEventListener('click', () => {
+    swapSide();
+})
+
+
+
+function restartGame() {
+    checkmatePanel.style.display = "none";
+    boardGUI.removeMarkers;
+    board.reset();
+    boardGUI.setPosition(FEN.start);
+}
+
+function updateBoard() {
+    boardGUI.setPosition(board.fen());
+}
+
+function updateHistory() {
+    historyTable.innerHTML = '';
+
+    const history = board.history();
+    for (let i = 0; i < history.length / 2; i++){
+        let tr = document.createElement("tr");
+        let tdWhite = document.createElement("td");
+        let tdBlack = document.createElement("td");
+        tdWhite.innerText = history[(i * 2)];
+        if (history[(i * 2) + 1]) tdBlack.innerText = history[(i * 2) + 1];
+        tr.appendChild(tdWhite);
+        tr.appendChild(tdBlack);
+        historyTable.appendChild(tr);
+    }
+}
+
+function swapSide() {
+    const orientation = boardGUI.getOrientation() === COLOR.white ? COLOR.black : COLOR.white;
+    boardGUI.setOrientation(orientation)
+}

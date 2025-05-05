@@ -11,7 +11,48 @@
     <title>Chess App</title>
   </head>
   <body>
-    <div id="board"></div>
+    <div id="checkmate">
+      Checkmate
+      <button id="playAgain">Dismiss</button>
+    </div>
+
+    <div id="game">
+      <div id="boardContainer">
+        <div class="opponentBanner">
+          <img src="/bot-image.png" class="playerPhoto" alt="Opponent Profile Picture"/>
+          <h4>Stockfish</h4>
+        </div>
+
+        <div id="board"></div>
+
+        <div class="playerBanner">
+          <div class="profile">
+            <img src="/player-image.png" class="playerPhoto" alt="Player Profile Picture"/>
+            <h4>Player</h4>
+          </div>
+
+          <div id="buttons">
+            <button id="swapSides">Swap Sides</button>
+            <button id="undo">Undo Move</button>
+            <button id="startAgain">Start Again</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="history">
+        <h4>Moves Played</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>White</th>
+              <th>Black</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable"></tbody>
+        </table>
+      </div>
+
+    </div>
 
     <script type="module" src="/src/main.js"></script>
   </body>
