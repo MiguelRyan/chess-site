@@ -12,7 +12,7 @@ const dangerMarker = {class: "marker-circle-danger", slice: "markerCircleDanger"
 const moveMarker = {class: "move-dot", slice: "moveDot"}
 const boardGUI = new Chessboard(document.getElementById("board"), {
     position: FEN.start,
-    assetsUrl: "/chess-site/public/assets/",
+    assetsUrl: "/chess-site/assets/",
     style: {
         borderType: BORDER_TYPE.frame
     },
