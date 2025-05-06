@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/chess-site/assets/chessboard.css">
+    <link rel="stylesheet" href="/chess-site/assets/extensions/promotion-dialog/promotion-dialog.css"/>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/chess-site/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess App</title>
+    <script type="module" crossorigin src="/chess-site/assets/index-BCyIdIjh.js"></script>
+    <link rel="stylesheet" crossorigin href="/chess-site/assets/index-BpApr_Da.css">
+  </head>
+  <body>
+    <div id="checkmate">
+      Checkmate
+      <button id="playAgain">Dismiss</button>
+    </div>
+
+    <div id="game">
+      <div id="boardContainer">
+        <div class="opponentBanner">
+          <div class="profile">
+            <img src="/chess-site/bot-image.png" class="playerPhoto" alt="Opponent Profile Picture"/>
+            <h4>Stockfish</h4>
+          </div>
+          <div id="difficulty">
+            <h4>Difficulty:</h4>
+            <input type="range" min="0" max="20" value="10">
+          </div>
+        </div>
+
+        <div id="board"></div>
+
+        <div class="playerBanner">
+          <div class="profile">
+            <img src="/chess-site/player-image.png" class="playerPhoto" alt="Player Profile Picture"/>
+            <h4>Player</h4>
+          </div>
+
+          <div id="buttons">
+            <button id="swapSides">Swap Sides</button>
+            <button id="undo">Undo Move</button>
+            <button id="startAgain">Start Again</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="history">
+        <h4>Moves Played</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>White</th>
+              <th>Black</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </body>
+</html>
