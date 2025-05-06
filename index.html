@@ -19,8 +19,14 @@
     <div id="game">
       <div id="boardContainer">
         <div class="opponentBanner">
-          <img src="/bot-image.png" class="playerPhoto" alt="Opponent Profile Picture"/>
-          <h4>Stockfish</h4>
+          <div class="profile">
+            <img src="/bot-image.png" class="playerPhoto" alt="Opponent Profile Picture"/>
+            <h4>Stockfish</h4>
+          </div>
+          <div id="difficulty">
+            <h4>Difficulty:</h4>
+            <input type="range" min="0" max="20" value="10">
+          </div>
         </div>
 
         <div id="board"></div>
@@ -54,6 +60,7 @@
 
     </div>
 
+    <script type="module" src="/src/buttonListeners.js"></script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

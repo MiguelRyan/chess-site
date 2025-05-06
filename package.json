@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "chess.js": "^1.2.0",
-    "cm-chessboard": "^8.7.8"
+    "cm-chessboard": "^8.7.8",
+    "stockfish": "^11.0.0"
   }
 }

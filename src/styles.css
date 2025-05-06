@@ -1,8 +1,10 @@
-
+:root {
+    --dark-square: #c5a076
+}
 
 body {
     overflow: hidden;
-    background-color: beige;
+    background-color: #cccccc;
 }
 
 #boardContainer {
@@ -23,11 +25,11 @@ body {
     display: flex;
     align-items: center;
     height: 10vh;
-    background-color: #c5a076;
+    background-color: var(--dark-square);
     border-radius: 10px;
 }
 
-.playerBanner {
+.playerBanner, .opponentBanner{
     justify-content: space-between;
 }
 
@@ -55,39 +57,60 @@ body {
     border-radius: 10%;
     font-weight: 600;
     background-color: beige;
-    color: #c5a076;
+    color: var(--dark-square);
+}
+
+#difficulty {
+    padding-right: 2vw;
+    display: flex;
+    align-items: center;
+}
+
+#difficulty h4 {
+    padding-right: 1vw;
 }
 
 #history {
-    border: 1px solid black;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 15vw;
-    border-radius: 2%;
     height: 70vh;
-    background-color: #c5a076;
 }
 
-th {
+#history h4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    color: beige;
+    background-color: var(--dark-square);
+    text-align: center;
+    height: 5vh;
+    width: 15vw;
     border: 1px solid black;
-    color: white;
-    background-color: #c5a076;
+    font-size: 1.5vw;
 }
 
 #history table {
-    background-color: beige;
     border: 1px solid black;
-    border-radius: 2%;
-    width: 13vw;
+    border-top-style: none;
+    border-collapse: collapse;
+    background-color: beige;
+    width: 15vw;
     text-align: center;
 }
-th {}
 
-#history h4 {
-    color: beige;
-    font-size: 0.9vw;
-    height: 10px;
+#history th {
+    border-right: 1px solid black;
+    font-size: 1.2vw;
+    color: var(--dark-square);
+    background-color: #f0f0ca;
+}
+
+#history td {
+    border-right: 1px solid black;
 }
 
 @media (max-width: 1500px) {
@@ -126,7 +149,7 @@ th {}
     width: calc(100vw - 100px);
     height: 15vh;
 
-    background-color: #c5a076;
+    background-color: var(--dark-square);
     border-color: black;
     border-width: 2px;
     border: solid;
@@ -145,6 +168,10 @@ th {}
     width: 25vw;
     height: 5vh;
     background-color: beige;
-    color: #c5a076;
+    color: var(--dark-square);
 }
 
+.move-dot {
+    fill: grey;
+    opacity: 0.4;
+}

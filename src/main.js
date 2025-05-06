@@ -3,10 +3,17 @@ import {BLACK, Chess, KING, WHITE} from 'chess.js'
 import {PromotionDialog} from "cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
 import {MARKER_TYPE, Markers} from "cm-chessboard/src/extensions/markers/Markers.js";
 
+const stockfish = new Worker('/node_modules/stockfish/src/stockfish.js')
+stockfish.postMessage('ucinewgame')
+stockfish.postMessage("position startpos")
+stockfish.postMessage('flip')
+stockfish.postMessage('setoption name Skill Level value 5')
+
 const checkmatePanel = document.getElementById("checkmate")
 const historyTable = document.getElementById("historyTable")
 const board = new Chess();
 const dangerMarker = {class: "marker-circle-danger", slice: "markerCircleDanger"};
+const moveMarker = {class: "move-dot", slice: "moveDot"}
 const boardGUI = new Chessboard(document.getElementById("board"), {
     position: FEN.start,
     assetsUrl: "/assets/",
@@ -25,7 +32,10 @@ function inputHandler(event) {
             boardGUI.removeMarkers()
             const legalMoves = board.moves({  square: event.square  })
             for (let move of legalMoves) {
-                boardGUI.addMarker(MARKER_TYPE.dot, move.slice(-2));
+                if (move.includes('+')) boardGUI.addMarker(moveMarker, move.slice(-3, -1));
+                else if (move === 'O-O') boardGUI.addMarker(moveMarker, boardGUI.getOrientation() === 'w' ? 'g1' : 'g8');
+                else if (move === 'O-O-O') boardGUI.addMarker(moveMarker, boardGUI.getOrientation() === 'w' ? 'c1' : 'c8');
+                else boardGUI.addMarker(moveMarker, move.slice(-2));
             }
         }
 
@@ -56,15 +66,23 @@ function inputHandler(event) {
     }
 }
 
-function makeMove(move) {
+async function makeMove(move, engineMove) {
     try {
         board.move(move);
+        await boardGUI.movePiece(move.from, move.to, true)
         boardGUI.removeMarkers()
     } catch (error) {
         console.log("Invalid Move: " + move.from + " to " + move.to + " " + move.promotion);
         return false;
     }
+
+    // this fixes the castling animations
     boardGUI.setPosition(board.fen());
+
+    if (!engineMove) {
+        stockfish.postMessage("position fen " + board.fen());
+        stockfish.postMessage("go movetime 2500");
+    }
     if (board.inCheck()) {
         const color = board.turn() === WHITE ? WHITE : BLACK;
         const pieceObject = {type: KING, color: color};
@@ -74,48 +92,21 @@ function makeMove(move) {
     updateHistory();
 }
 
-const allButtons = document.body.getElementsByTagName("button");
-for (let button of allButtons) {
-    button.addEventListener('mouseenter', () => {
-        button.style.color = "white";
-    })
-    button.addEventListener('mouseleave', () => {
-        button.style.color = "#c5a076";
-    })
-}
-
-playAgain.addEventListener('click', () => {
+export function restartGame() {
     checkmatePanel.style.display = "none";
-})
-
-startAgain.addEventListener('click', () => {
-    restartGame()
-})
-
-undo.addEventListener('click', () => {
-    board.undo();
-    updateBoard();
-    updateHistory();
-})
-
-swapSides.addEventListener('click', () => {
-    swapSide();
-})
-
-
-
-function restartGame() {
-    checkmatePanel.style.display = "none";
-    boardGUI.removeMarkers;
+    boardGUI.removeMarkers();
     board.reset();
     boardGUI.setPosition(FEN.start);
+    stockfish.postMessage("position startpos")
+    runStockfish();
+    updateHistory();
 }
 
-function updateBoard() {
+export function updateBoard() {
     boardGUI.setPosition(board.fen());
 }
 
-function updateHistory() {
+export function updateHistory() {
     historyTable.innerHTML = '';
 
     const history = board.history();
@@ -131,7 +122,36 @@ function updateHistory() {
     }
 }
 
-function swapSide() {
+export function undoMove() {
+    board.undo();
+    if (board.turn() !== boardGUI.getOrientation()) board.undo();
+    stockfish.postMessage("position " + board.fen());
+}
+
+export function swapSide() {
     const orientation = boardGUI.getOrientation() === COLOR.white ? COLOR.black : COLOR.white;
     boardGUI.setOrientation(orientation)
+
+    stockfish.postMessage('flip')
+    runStockfish()
 }
+
+stockfish.onmessage = function (event) {
+    console.log(event)
+    if (event.data.includes('bestmove')) {
+        const move = event.data.slice(9, 13)
+        makeMove({from: move.slice(0, 2), to: move.slice(2,4)}, true);
+    }
+}
+
+function runStockfish() {
+    stockfish.postMessage("position " + board.fen());
+    stockfish.postMessage("go depth 2");
+}
+
+const difficulty = document.querySelector("input")
+difficulty.addEventListener('change', val => {
+    console.log(val);
+    console.log('setoption name Skill Levesl value ' + difficulty.value)
+    stockfish.postMessage('setoption name Skill Level value ' + difficulty.value)
+})
