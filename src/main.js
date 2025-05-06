@@ -1,13 +1,10 @@
 import {BORDER_TYPE, Chessboard, COLOR, FEN, INPUT_EVENT_TYPE} from "cm-chessboard"
 import {BLACK, Chess, KING, WHITE} from 'chess.js'
 import {PromotionDialog} from "cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
-import {MARKER_TYPE, Markers} from "cm-chessboard/src/extensions/markers/Markers.js";
+import {Markers} from "cm-chessboard/src/extensions/markers/Markers.js";
 
-const stockfish = new Worker('/node_modules/stockfish/src/stockfish.js')
-stockfish.postMessage('ucinewgame')
-stockfish.postMessage("position startpos")
-stockfish.postMessage('flip')
-stockfish.postMessage('setoption name Skill Level value 5')
+const stockfishWorker = new Worker("stockfish.js");
+setupStockfish();
 
 const checkmatePanel = document.getElementById("checkmate")
 const historyTable = document.getElementById("historyTable")
@@ -58,10 +55,6 @@ function inputHandler(event) {
             makeMove(move);
         }
 
-        if (board.isCheckmate()) {
-            checkmatePanel.style.display = "flex";
-        }
-
         return false;
     }
 }
@@ -80,16 +73,18 @@ async function makeMove(move, engineMove) {
     boardGUI.setPosition(board.fen());
 
     if (!engineMove) {
-        stockfish.postMessage("position fen " + board.fen());
-        stockfish.postMessage("go movetime 2500");
+        runStockfish();
     }
+    updateHistory();
     if (board.inCheck()) {
         const color = board.turn() === WHITE ? WHITE : BLACK;
         const pieceObject = {type: KING, color: color};
         const location = board.findPiece(pieceObject);
         boardGUI.addMarker(dangerMarker, location[0]);
     }
-    updateHistory();
+    if (board.isCheckmate()) {
+        checkmatePanel.style.display = "flex";
+    }
 }
 
 export function restartGame() {
@@ -97,8 +92,9 @@ export function restartGame() {
     boardGUI.removeMarkers();
     board.reset();
     boardGUI.setPosition(FEN.start);
-    stockfish.postMessage("position startpos")
-    runStockfish();
+    stockfishWorker.postMessage("position startpos")
+    setupStockfish(boardGUI.getOrientation() === 'w')
+    if (boardGUI.getOrientation() === 'b') runStockfish();
     updateHistory();
 }
 
@@ -125,18 +121,31 @@ export function updateHistory() {
 export function undoMove() {
     board.undo();
     if (board.turn() !== boardGUI.getOrientation()) board.undo();
-    stockfish.postMessage("position " + board.fen());
+    stockfishWorker.postMessage("position " + board.fen());
 }
 
 export function swapSide() {
     const orientation = boardGUI.getOrientation() === COLOR.white ? COLOR.black : COLOR.white;
     boardGUI.setOrientation(orientation)
 
-    stockfish.postMessage('flip')
+    stockfishWorker.postMessage('flip')
     runStockfish()
 }
 
-stockfish.onmessage = function (event) {
+function setupStockfish(engineIsWhite) {
+    stockfishWorker.postMessage('ucinewgame')
+    stockfishWorker.postMessage("position startpos")
+    stockfishWorker.postMessage('setoption name UCI_LimitStrength value true')
+    if (!engineIsWhite) stockfishWorker.postMessage('flip')
+}
+
+function runStockfish() {
+    console.log("position " + board.fen());
+    stockfishWorker.postMessage("position fen " + board.fen());
+    stockfishWorker.postMessage("go depth 1");
+}
+
+stockfishWorker.onmessage = function (event) {
     console.log(event)
     if (event.data.includes('bestmove')) {
         const move = event.data.slice(9, 13)
@@ -144,14 +153,8 @@ stockfish.onmessage = function (event) {
     }
 }
 
-function runStockfish() {
-    stockfish.postMessage("position " + board.fen());
-    stockfish.postMessage("go depth 2");
-}
-
 const difficulty = document.querySelector("input")
 difficulty.addEventListener('change', val => {
-    console.log(val);
-    console.log('setoption name Skill Levesl value ' + difficulty.value)
-    stockfish.postMessage('setoption name Skill Level value ' + difficulty.value)
+    console.log('setoption name Skill Level value ' + difficulty.value)
+    stockfishWorker.postMessage('setoption name Skill Level value ' + difficulty.value)
 })
