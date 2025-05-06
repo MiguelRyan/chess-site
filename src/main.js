@@ -2,7 +2,6 @@ import {BORDER_TYPE, Chessboard, COLOR, FEN, INPUT_EVENT_TYPE} from "cm-chessboa
 import {BLACK, Chess, KING, WHITE} from 'chess.js'
 import {PromotionDialog} from "cm-chessboard/src/extensions/promotion-dialog/PromotionDialog.js";
 import {Markers} from "cm-chessboard/src/extensions/markers/Markers.js";
-
 const stockfishWorker = new Worker("stockfish.js");
 setupStockfish();
 
@@ -13,7 +12,7 @@ const dangerMarker = {class: "marker-circle-danger", slice: "markerCircleDanger"
 const moveMarker = {class: "move-dot", slice: "moveDot"}
 const boardGUI = new Chessboard(document.getElementById("board"), {
     position: FEN.start,
-    assetsUrl: "/assets/",
+    assetsUrl: "/chess-site/public/assets/",
     style: {
         borderType: BORDER_TYPE.frame
     },
